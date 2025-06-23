@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require('express');
 const app = express()
 const bodyParser = require('body-parser')
@@ -11,6 +12,16 @@ app.use(helmet());
 
 //handle CORS error
 app.use(cors());
+
+//MongoDb connection Setup
+const mongoose = require('mongoose');
+
+ mongoose.connect(process.env.MONGO_URL, {
+    useNewURLParser: true,
+    useUnifiedTopology: true,
+    
+}).then(()=> console.log("MongoDB connected")).catch((err)=> console.log(err))
+
 
 
 //Logger
@@ -33,8 +44,8 @@ const ticketRouter = require('./routers/TicketRouter')
 
 
 //Use Routers
-app.use("/u1/user", userRouter);
-app.use("/u1/ticket", ticketRouter )
+app.use("/api/user", userRouter);
+app.use("/api/ticket", ticketRouter )
 
 
 //Error handler
