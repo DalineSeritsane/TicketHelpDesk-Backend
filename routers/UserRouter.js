@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 
 const ticketRouter = require('./TicketRouter')
 const {insertUser} = require("../model/UserModel")
+const User = require("../model/UserSchema")
 
 // Middleware for all requests to '/'
 router.all("/", (req, res, next) =>{
@@ -47,9 +48,54 @@ router.post('/', async (req, res) => {
     res.json({message: "New user created", result})
 } catch (error) {
     console.log(error);
-    res.json({statux:'error', message: error.message})
+    res.json({status:'error', message: error.message})
 }
 });
+
+//User sign-in Router with bcrypt password comparison
+router.post("/login", async (req, res)=>{
+    try{
+        const {email, password} =req.body;
+
+        //Basic validation
+        if (!email || !password) {
+            return res.status(400).json({ status: "error", message:"Email and password are required "})
+        }
+
+        //Find the user
+        const user = await User.findOne({email});
+        if (!user) {
+            return res.status(401).json({ status:"error", message:"Invalid email or password"})
+        }
+
+        //Compare password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ status: "error", message: "Invalid password"})
+            
+        }
+
+        //Login success
+        res.json({
+            status: "success",
+            message:"Login Successfully",
+            user:{
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                company: user.company
+            }
+        })
+    } catch (error){
+        console.log(error);
+        res.status(500).json({ status: "error", message:"Server error during login "})
+    }
+
+
+
+    // res.json({status: "success", message: "Login Successfully"})
+})
+
 
 
 
